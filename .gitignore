@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Data / results
+data/
+*.pkl
+*.npz
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Environments
+.env
+.venv
