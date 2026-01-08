@@ -54,14 +54,12 @@ class GallegatiModel:
         # histories (agents)
         W_history = np.zeros((self.T, self.N))
         profit_history = np.zeros((self.T, self.N))
-        utility_history = np.zeros((self.T, self.N))
         w_history = np.zeros((self.T, self.N))
         constraint_history = np.zeros((self.T, self.N))
 
         # aggregates
         mean_wealth = np.zeros(self.T)
         mean_profit = np.zeros(self.T)
-        mean_utility = np.zeros(self.T)
         mean_position = np.zeros(self.T)
         frac_constrained = np.zeros(self.T)
 
@@ -95,7 +93,6 @@ class GallegatiModel:
             # ---- bookkeeping ----
             W_history[t] = W
             profit_history[t] = profits
-            utility_history[t] = profits          # utility = profits (minimal, standard)
             w_history[t] = w_new
             constraint_history[t] = (W <= self.limit_wealth).astype(int)
 
@@ -129,14 +126,12 @@ class GallegatiModel:
             # agent-level
             "W": W_history,
             # "profits": profit_history,
-            # "utility": utility_history,
             # "positions": w_history,
             # "constraints": constraint_history,
 
             # aggregates
             # "mean_wealth": mean_wealth,
             # "mean_profit": mean_profit,
-            # "mean_utility": mean_utility,
             # "mean_position": mean_position,
             "frac_constrained": frac_constrained,
 
