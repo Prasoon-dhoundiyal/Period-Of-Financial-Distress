@@ -98,7 +98,6 @@ class GallegatiModel:
 
             mean_wealth[t] = W.mean()
             mean_profit[t] = profits.mean()
-            mean_utility[t] = profits.mean()
             mean_position[t] = w_new.mean()
             frac_constrained[t] = constraint_history[t].mean() if constrained_active else 0.0
 
