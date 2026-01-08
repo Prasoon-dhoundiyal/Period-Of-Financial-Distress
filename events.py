@@ -1,8 +1,8 @@
-import numpy as np
-
 """
 Crash, constraint, and replacement detection logic.
 """
+
+import numpy as np
 
 # ================= Event Detection =================
 def detect_events(p_log, p_expect, frac_constrained, F=10.0):
