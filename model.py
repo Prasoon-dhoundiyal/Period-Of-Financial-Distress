@@ -1,9 +1,9 @@
-import numpy as np
-
 """
 Gallegati et al. (2011) Financial Distress Model
 Fully instrumented agent-based implementation.
 """
+
+import numpy as np
 
 # ================= Model =================
 
