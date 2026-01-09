@@ -104,6 +104,79 @@ def plot_single_run_prices(
         plt.show()
 
 
+def plot_logdiff_4_comparison(
+    p_unconstrained_log,
+    p_constrained_log,
+    constraint_start,
+    crash_time,
+    title=None,
+    ax=None
+):
+    """
+    Plot 4-period log price differences for constrained vs unconstrained series.
+    """
+
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(11, 5))
+
+    T = len(p_constrained_log)
+
+    g_uncon = np.full(T, np.nan)
+    g_con = np.full(T, np.nan)
+
+    for t in range(4, T):
+        g_uncon[t] = p_unconstrained_log[t] - p_unconstrained_log[t - 4]
+        g_con[t] = p_constrained_log[t] - p_constrained_log[t - 4]
+
+    # --- Plot ---
+    ax.plot(
+        g_uncon,
+        color="#6B7280",
+        lw=1.0,
+        alpha=0.8,
+        label="Unconstrained (Δ₄ log price)"
+    )
+
+    ax.plot(
+        g_con,
+        color="#111827",
+        lw=1.4,
+        alpha=0.9,
+        label="Constrained (Δ₄ log price)"
+    )
+
+    # --- Event markers ---
+    ax.axvline(
+        constraint_start,
+        linestyle="--",
+        linewidth=1.0,
+        alpha=0.6,
+        label=f"Constraint start (t={constraint_start})"
+    )
+
+    ax.axvline(
+        crash_time,
+        linestyle="-.",
+        linewidth=1.1,
+        alpha=0.7,
+        label=f"Crash (t={crash_time})"
+    )
+
+    ax.axhline(0.0, color="#9CA3AF", linewidth=0.8, alpha=0.6)
+
+    ax.set_xlabel("Time")
+    ax.set_ylabel("4-period log difference")
+
+    if title is not None:
+        ax.set_title(title)
+
+    ax.legend(frameon=False)
+
+    if ax is None:
+        plt.tight_layout()
+        plt.show()
+
+
 def plot_wealth_distributions(
     W_hist,
     limit_wealth,
