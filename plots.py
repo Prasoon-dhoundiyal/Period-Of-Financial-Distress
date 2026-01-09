@@ -109,6 +109,7 @@ def plot_logdiff_4_comparison(
     p_constrained_log,
     constraint_start,
     crash_time,
+    replacement_time,
     title=None,
     ax=None
 ):
@@ -160,6 +161,14 @@ def plot_logdiff_4_comparison(
         linewidth=1.1,
         alpha=0.7,
         label=f"Crash (t={crash_time})"
+    )
+
+    ax.axvline(
+        replacement_time,
+        linestyle=":",
+        linewidth=1.1,
+        alpha=0.7,
+        label=f"Replacement (t={replacement_time})"
     )
 
     ax.axhline(0.0, color="#9CA3AF", linewidth=0.8, alpha=0.6)
