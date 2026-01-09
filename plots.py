@@ -157,20 +157,6 @@ def plot_wealth_distributions(
         plt.show()
 
 
-
-def plot_monte_carlo_paths(
-    results,
-    F=10.0,
-    alpha_paths=0.08,
-    ax=None
-):
-    """
-    Plot Monte Carlo ensemble of valid realizations.
-    Uses stored outputs only (no reruns).
-    """
-    pass
-
-
 def plot_beta_comparison_constrained(
     price_paths_by_beta,
     F=10.0,
@@ -187,5 +173,59 @@ def plot_beta_comparison_constrained(
         {beta_value: price_path_array}
     F : float
         Fundamental price
+    title : str, optional
+    ax : matplotlib axis, optional
+    """
+
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(12, 6))
+
+    colors = [
+        "#111827",  # near-black
+        "#1D4ED8",  # blue
+        "#7C2D12",  # brown-red
+        "#065F46",  # green
+        "#6D28D9"   # purple
+    ]
+
+    for i, beta in enumerate(sorted(price_paths_by_beta.keys())):
+        ax.plot(
+            price_paths_by_beta[beta],
+            color=colors[i % len(colors)],
+            lw=0.9,
+            label=f"β = {beta}"
+        )
+
+    ax.axhline(
+        F,
+        color="#9CA3AF",
+        linestyle=":",
+        linewidth=1.0,
+        alpha=0.6,
+        label="Fundamental"
+    )
+
+    ax.set_xlabel("Time")
+    ax.set_ylabel("Price")
+
+    if title is not None:
+        ax.set_title(title)
+
+    ax.legend(frameon=False)
+
+    if ax is None:
+        plt.tight_layout()
+        plt.show()
+
+
+def plot_monte_carlo_paths(
+    results,
+    F=10.0,
+    alpha_paths=0.08,
+    ax=None
+):
+    """
+    Plot Monte Carlo ensemble of valid realizations.
+    Uses stored outputs only (no reruns).
     """
     pass
