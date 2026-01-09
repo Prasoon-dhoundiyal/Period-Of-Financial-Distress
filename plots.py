@@ -1,6 +1,19 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+# ============================================================
+# Plot styling
+# ============================================================
+
+COLOR_UNCONSTRAINED = "#6B7280"   # mid gray
+COLOR_CONSTRAINED   = "#111827"   # near black
+
+COLOR_CONSTRAINT = "#374151"      # dark gray
+COLOR_CRASH      = "#7F1D1D"      # dark red
+COLOR_REPLACEMENT= "#065F46"      # dark green
+
+COLOR_FUNDAMENTAL = "#4B5563"     # dark neutral
+
 
 def plot_single_run_prices(
     p_unconstrained,
@@ -41,34 +54,38 @@ def plot_single_run_prices(
     # --- Event markers ---
     ax1.axvline(
         constraint_start,
-        ls="--",
-        lw=0.8,
-        alpha=0.5,
+        color=COLOR_CONSTRAINT,
+        linestyle="--",
+        linewidth=1.4,
+        alpha=0.95,
         label=f"Constraint start (t={constraint_start})"
     )
 
     ax1.axvline(
         crash_time,
-        ls="-.",
-        lw=0.9,
-        alpha=0.6,
+        color=COLOR_CRASH,
+        linestyle="-.",
+        linewidth=1.6,
+        alpha=0.95,
         label=f"Crash – worst fall (t={crash_time})"
     )
 
     ax1.axvline(
         replacement_time,
-        ls=":",
-        lw=1.0,
-        alpha=0.6,
+        color=COLOR_REPLACEMENT,
+        linestyle=":",
+        linewidth=1.6,
+        alpha=0.95,
         label=f"Replacement (t={replacement_time})"
     )
 
-    # --- Fundamental ---
+    # --- Fundamental reference level ---
     ax1.axhline(
         0.6 * F,
-        ls=":",
-        lw=0.8,
-        alpha=0.5,
+        color=COLOR_FUNDAMENTAL,
+        linestyle=":",
+        linewidth=1.2,
+        alpha=0.9,
         label="0.6 × Fundamental"
     )
 
@@ -149,29 +166,38 @@ def plot_logdiff_4_comparison(
     # --- Event markers ---
     ax.axvline(
         constraint_start,
+        color=COLOR_CONSTRAINT,
         linestyle="--",
-        linewidth=1.0,
-        alpha=0.6,
+        linewidth=1.4,
+        alpha=0.95,
         label=f"Constraint start (t={constraint_start})"
     )
 
     ax.axvline(
         crash_time,
+        color=COLOR_CRASH,
         linestyle="-.",
-        linewidth=1.1,
-        alpha=0.7,
+        linewidth=1.6,
+        alpha=0.95,
         label=f"Crash (t={crash_time})"
     )
 
     ax.axvline(
         replacement_time,
+        color=COLOR_REPLACEMENT,
         linestyle=":",
-        linewidth=1.1,
-        alpha=0.7,
+        linewidth=1.6,
+        alpha=0.95,
         label=f"Replacement (t={replacement_time})"
     )
 
-    ax.axhline(0.0, color="#9CA3AF", linewidth=0.8, alpha=0.6)
+    # --- Zero return reference ---
+    ax.axhline(
+        0.0,
+        color=COLOR_FUNDAMENTAL,
+        linewidth=1.2,
+        alpha=0.9
+    )
 
     ax.set_xlabel("Time")
     ax.set_ylabel("4-period log difference")
@@ -366,41 +392,41 @@ def plot_monte_carlo_paths(
         label="Mean price (valid runs)"
     )
 
-    # --- Event markers ---
+    # --- Average event timings across valid runs ---
     ax.axvline(
         avg_constraint,
-        color="#1F2937",
+        color=COLOR_CONSTRAINT,
         linestyle="--",
-        linewidth=1.2,
-        alpha=0.8,
+        linewidth=1.6,
+        alpha=0.9,
         label=f"Avg constraint start (t={avg_constraint})"
     )
 
     ax.axvline(
         avg_crash,
-        color="#7C2D12",
+        color=COLOR_CRASH,
         linestyle="-.",
-        linewidth=1.2,
-        alpha=0.8,
+        linewidth=1.8,
+        alpha=0.9,
         label=f"Avg crash (t={avg_crash})"
     )
 
     ax.axvline(
         avg_replacement,
-        color="#065F46",
+        color=COLOR_REPLACEMENT,
         linestyle=":",
-        linewidth=1.4,
-        alpha=0.8,
+        linewidth=1.8,
+        alpha=0.9,
         label=f"Avg replacement (t={avg_replacement})"
     )
 
-    # --- Fundamental ---
+    # --- Fundamental price reference ---
     ax.axhline(
         F,
-        color="#9CA3AF",
+        color=COLOR_FUNDAMENTAL,
         linestyle=":",
-        linewidth=1.0,
-        alpha=0.8,
+        linewidth=1.4,
+        alpha=0.85,
         label="Fundamental"
     )
 
