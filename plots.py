@@ -112,8 +112,50 @@ def plot_wealth_distributions(
 ):
     """
     Plot wealth distribution histograms at selected time points.
+
+    Parameters
+    ----------
+    W_hist : array (T x N)
+        Wealth history from the model
+    limit_wealth : float
+        Liquidity constraint threshold (theta * W0)
+    time_points : list
+        Time indices at which to plot wealth distributions
+    ax : matplotlib axis, optional
     """
-    pass
+
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(10, 6))
+
+    for t in time_points:
+        if t < W_hist.shape[0]:
+            ax.hist(
+                W_hist[t, :],
+                bins=30,
+                alpha=0.5,
+                density=True,
+                label=f"t = {t}"
+            )
+        else:
+            print(f"Warning: t={t} exceeds simulation horizon")
+
+    ax.axvline(
+        limit_wealth,
+        color="red",
+        linestyle="--",
+        linewidth=1.2,
+        label=f"Constraint (θW₀ = {limit_wealth:.0f})"
+    )
+
+    ax.set_title("Wealth Distribution Dynamics")
+    ax.set_xlabel("Wealth")
+    ax.set_ylabel("Density")
+    ax.legend()
+
+    if ax is None:
+        plt.tight_layout()
+        plt.show()
+
 
 
 def plot_monte_carlo_paths(
