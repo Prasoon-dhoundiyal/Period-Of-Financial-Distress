@@ -227,5 +227,112 @@ def plot_monte_carlo_paths(
     """
     Plot Monte Carlo ensemble of valid realizations.
     Uses stored outputs only (no reruns).
+
+    Parameters
+    ----------
+    results : dict
+        Output from monte_carlo_gallegati (valid runs only)
+    F : float
+        Fundamental price
+    alpha_paths : float
+        Transparency for individual paths
+    ax : matplotlib axis, optional
     """
-    pass
+
+    if len(results) == 0:
+        raise ValueError("No valid Monte Carlo runs to plot.")
+
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(12, 6))
+
+    # --- Collect price paths and event times ---
+    price_paths = []
+    constraint_times = []
+    crash_times = []
+    replacement_times = []
+
+    for seed, entry in results.items():
+        out = entry["output"]
+
+        price_paths.append(np.exp(out["p_log"]))
+        constraint_times.append(entry["constraint_start"])
+        crash_times.append(entry["crash_time"])
+        replacement_times.append(entry["replacement_time"])
+
+    price_paths = np.array(price_paths)
+
+    # --- Averages ---
+    mean_price = price_paths.mean(axis=0)
+    avg_constraint = int(np.mean(constraint_times))
+    avg_crash = int(np.mean(crash_times))
+    avg_replacement = int(np.mean(replacement_times))
+
+    # --- Plot all paths ---
+    for path in price_paths:
+        ax.plot(
+            path,
+            color="#6B7280",
+            alpha=alpha_paths,
+            linewidth=0.8
+        )
+
+    # --- Mean path ---
+    ax.plot(
+        mean_price,
+        color="#111827",
+        linewidth=2.6,
+        label="Mean price (valid runs)"
+    )
+
+    # --- Event markers ---
+    ax.axvline(
+        avg_constraint,
+        color="#1F2937",
+        linestyle="--",
+        linewidth=1.2,
+        alpha=0.8,
+        label=f"Avg constraint start (t={avg_constraint})"
+    )
+
+    ax.axvline(
+        avg_crash,
+        color="#7C2D12",
+        linestyle="-.",
+        linewidth=1.2,
+        alpha=0.8,
+        label=f"Avg crash (t={avg_crash})"
+    )
+
+    ax.axvline(
+        avg_replacement,
+        color="#065F46",
+        linestyle=":",
+        linewidth=1.4,
+        alpha=0.8,
+        label=f"Avg replacement (t={avg_replacement})"
+    )
+
+    # --- Fundamental ---
+    ax.axhline(
+        F,
+        color="#9CA3AF",
+        linestyle=":",
+        linewidth=1.0,
+        alpha=0.8,
+        label="Fundamental"
+    )
+
+    ax.set_xlabel("Time")
+    ax.set_ylabel("Price")
+    ax.set_title(
+        "Monte Carlo Valid Realizations\n"
+        f"(N = {len(results)} valid runs)"
+    )
+
+    ax.legend(frameon=False, loc="upper right")
+
+    if ax is None:
+        plt.tight_layout()
+        plt.show()
+
+
