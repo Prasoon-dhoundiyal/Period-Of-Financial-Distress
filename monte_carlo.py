@@ -27,7 +27,11 @@ def monte_carlo_gallegati(
     for seed in tqdm(range(n_runs), desc="Monte Carlo runs"):
 
         model = GallegatiModel(seed=seed, **model_params)
-        out = model.run()
+        out = model.run(return_vars=[
+                                      "p_log",
+                                      "p_expect",
+                                      "frac_constrained"
+                                ])
 
         frac = out["frac_constrained"]
 
