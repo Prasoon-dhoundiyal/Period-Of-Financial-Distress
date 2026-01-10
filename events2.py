@@ -22,22 +22,8 @@ def detect_events_model2(p_log, p_expect, frac_constrained, F=10.0):
     constraint_start = idx[0] if len(idx) > 0 else None
 
     # ----------------------------
-    # Crash time
-    # Most negative outlier AFTER constraint_start
-    # ----------------------------
-    crash_time = None
-    if constraint_start is not None:
-        for t in range(constraint_start, T):
-            valid = g[:t + 1][~np.isnan(g[:t + 1])]
-            worst_idx = np.where(~np.isnan(g[:t + 1]))[0][np.argmin(valid)]
-            if worst_idx >= constraint_start:
-                crash_time = worst_idx
-                break
-
-    # ----------------------------
     # Replacement time (Model 2)
-    # Only allowed AFTER constraint_start
-    # Trigger: expected price < 60% of fundamental
+    # Only AFTER constraint start
     # ----------------------------
     replacement_time = None
     if constraint_start is not None:
@@ -45,6 +31,21 @@ def detect_events_model2(p_log, p_expect, frac_constrained, F=10.0):
         for t in range(constraint_start, T):
             if p_expect[t] < threshold:
                 replacement_time = t
+                break
+
+    # ----------------------------
+    # Crash time
+    # Most negative outlier BETWEEN
+    # constraint_start and replacement_time
+    # ----------------------------
+    crash_time = None
+    if constraint_start is not None:
+        end = replacement_time if replacement_time is not None else T
+        for t in range(constraint_start, end):
+            valid = g[:t + 1][~np.isnan(g[:t + 1])]
+            worst_idx = np.where(~np.isnan(g[:t + 1]))[0][np.argmin(valid)]
+            if worst_idx >= constraint_start and worst_idx < end:
+                crash_time = worst_idx
                 break
 
     return constraint_start, crash_time, replacement_time
