@@ -159,6 +159,7 @@ class GallegatiModel2:
             if (
                 not replacement_done
                 and p_expect < fundamental_log
+                and p_expect < fundamental_log
             ):
                 W[W <= self.limit_wealth] = self.W0
                 constrained_active = False
