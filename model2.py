@@ -160,7 +160,7 @@ class GallegatiModel2:
                 not replacement_done
                 and p_expect < fundamental_log
             ):
-                W[W <= limit_wealth] = W0
+                W[W <= limit_wealth] = self.W0
                 constrained_active = False
                 replacement_done = True
 
