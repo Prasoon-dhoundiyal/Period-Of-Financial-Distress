@@ -1,5 +1,10 @@
 """
 Event detection for Model 2.
+Detects:
+- constraint_start
+- replacement_time (expectations < 60% F, only after constraint start)
+- crash_time (first new worst 4-step negative outlier, benchmarked on all past values,
+              but occurring only within the window)
 """
 
 import numpy as np
@@ -9,7 +14,7 @@ def detect_events_model2(p_log, p_expect, frac_constrained, F=10.0):
     T = len(p_log)
 
     # ----------------------------
-    # Growth rate (same as Model 1)
+    # 4-step growth rate
     # ----------------------------
     g = np.full(T, np.nan)
     for t in range(4, T):
@@ -22,30 +27,36 @@ def detect_events_model2(p_log, p_expect, frac_constrained, F=10.0):
     constraint_start = idx[0] if len(idx) > 0 else None
 
     # ----------------------------
-    # Replacement time (Model 2)
-    # Only AFTER constraint start
+    # Replacement time
+    # (expectations < 60% F, only AFTER constraint start)
     # ----------------------------
     replacement_time = None
     if constraint_start is not None:
         threshold = np.log(0.6 * F)
-        for t in range(constraint_start, T):
+        for t in range(constraint_start + 1, T):
             if p_expect[t] < threshold:
                 replacement_time = t
                 break
 
     # ----------------------------
     # Crash time
-    # Most negative outlier BETWEEN
-    # constraint_start and replacement_time
+    # First time a 4-step return becomes
+    # the worst observed so far across ALL history,
+    # but only if it occurs inside the window
+    # [constraint_start, replacement_time)
     # ----------------------------
     crash_time = None
     if constraint_start is not None:
         end = replacement_time if replacement_time is not None else T
-        for t in range(constraint_start, end):
-            valid = g[:t + 1][~np.isnan(g[:t + 1])]
-            worst_idx = np.where(~np.isnan(g[:t + 1]))[0][np.argmin(valid)]
-            if worst_idx >= constraint_start and worst_idx < end:
-                crash_time = worst_idx
+
+        # worst value over all past history BEFORE the window
+        past_worst = np.nanmin(g[:constraint_start + 1])
+
+        for t in range(constraint_start + 1, end):
+            if np.isnan(g[t]):
+                continue
+            if g[t] < past_worst:
+                crash_time = t
                 break
 
     return constraint_start, crash_time, replacement_time
