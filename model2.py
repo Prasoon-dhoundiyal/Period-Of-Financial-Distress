@@ -1,6 +1,7 @@
 """
 Gallegati et al. (2011) Financial Distress Model
-Variant with endogenous replacement and valid-run checks.
+Variant with ENDOGENOUS replacement only.
+All other logic identical to model.py.
 """
 
 import numpy as np
@@ -24,8 +25,8 @@ class GallegatiModel2:
         y=1 / 36000,
         W0=1000,
         seed=6,
+        replacement_time=None,   # accepted for backward compatibility, ignored
         constraints_active=True,
-        replacement_time=None,   # <-- ignored, kept for compatibility
         fundamental=10.0,
     ):
 
@@ -98,11 +99,9 @@ class GallegatiModel2:
         constrained_active = self.constraints_active
 
         # --------------------------------------------------
-        # Tracking variables (NEW)
+        # Endogenous replacement tracking (ONLY change)
         # --------------------------------------------------
         fundamental_log = np.log(0.6 * self.fundamental)
-        constraint_start = None
-        replacement_time = None
         replacement_done = False
 
         # ==================================================
@@ -149,10 +148,6 @@ class GallegatiModel2:
                 else 0.0
             )
 
-            # ---- constraint start tracking (NEW) ----
-            if constraint_start is None and np.any(W <= self.limit_wealth):
-                constraint_start = t
-
             # ---- expectations ----
             p_expect = (
                 p_expect
@@ -160,12 +155,11 @@ class GallegatiModel2:
                 + self.sigma2 * z2[t]
             )
 
-            # ---- endogenous replacement (NEW) ----
+            # ---- ENDOGENOUS replacement (ONLY change) ----
             if (
                 not replacement_done
                 and p_expect < fundamental_log
             ):
-                replacement_time = t
                 W[:] = self.W0
                 w_new[:] = np.where(np.random.random(self.N) > 0.5, 1, -1)
                 constrained_active = False
@@ -178,36 +172,7 @@ class GallegatiModel2:
             w_agg_prev = w_agg
 
         # ==================================================
-        # Outlier computation (UNCHANGED logic)
-        # ==================================================
-        g = np.full(self.T, np.nan)
-        for t in range(4, self.T):
-            g[t] = p_hist[t] - p_hist[t - 4]
-
-        t_star = np.nanargmin(g)
-
-        # ==================================================
-        # Valid-run logic (NEW, exact rules)
-        # ==================================================
-        valid_run = True
-
-        if constraint_start is None:
-            valid_run = False
-
-        elif p_expect_hist[constraint_start] < fundamental_log:
-            valid_run = False
-
-        elif replacement_time is None:
-            valid_run = False
-
-        elif not (constraint_start <= t_star < replacement_time):
-            valid_run = False
-
-        elif (t_star - constraint_start) < 10:
-            valid_run = False
-
-        # ==================================================
-        # Full output dictionary
+        # Full output dictionary (same pattern)
         # ==================================================
         full_output = {
             "p_log": p_hist,
@@ -223,21 +188,16 @@ class GallegatiModel2:
             "prob_buy": prob_buy_hist,
             "price_shock": z1,
             "exp_shock": z2,
-            "constraint_start": constraint_start,
-            "replacement_time": replacement_time,
-            "t_star": t_star,
-            "valid_run": valid_run,
         }
 
         # ==================================================
-        # Selective return (same pattern as model.py)
+        # Selective return (unchanged contract)
         # ==================================================
         if return_vars is None:
             return {
                 "p_log": p_hist,
                 "p_expect": p_expect_hist,
                 "frac_constrained": frac_constrained,
-                "valid_run": valid_run,
             }
 
         missing = set(return_vars) - full_output.keys()
