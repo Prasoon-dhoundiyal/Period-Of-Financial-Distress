@@ -55,6 +55,10 @@ def monte_carlo_gallegati(
             F=F
         )
 
+        # INVALID if expectations already collapsed at constraint start
+        if out["p_expect"][constraint_start] < np.log(0.6 * F):
+            continue
+
         # Crash is required for validity
         if constraint_start is None or crash_time is None:
             continue
