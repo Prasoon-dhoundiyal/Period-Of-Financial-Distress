@@ -161,7 +161,6 @@ class GallegatiModel2:
                 and p_expect < fundamental_log
             ):
                 W[W <= limit_wealth] = W0
-                w_new[:] = np.where(np.random.random(self.N) > 0.5, 1, -1)
                 constrained_active = False
                 replacement_done = True
 
