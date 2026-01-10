@@ -25,6 +25,7 @@ class GallegatiModel2:
         W0=1000,
         seed=6,
         constraints_active=True,
+        replacement_time=None,   # <-- ignored, kept for compatibility
         fundamental=10.0,
     ):
 
