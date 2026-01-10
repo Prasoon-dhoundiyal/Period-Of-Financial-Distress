@@ -7,8 +7,6 @@ All other logic identical to model.py.
 import numpy as np
 
 
-# ================= Model =================
-
 class GallegatiModel2:
     def __init__(
         self,
@@ -54,62 +52,37 @@ class GallegatiModel2:
 
         np.random.seed(self.seed)
 
-        # --------------------------------------------------
-        # Shocks and random draws
-        # --------------------------------------------------
         z1 = np.random.normal(0, 1, self.T)
         z2 = np.random.normal(0, 1, self.T)
         rand_choices = np.random.random((self.T, self.N))
 
-        # --------------------------------------------------
-        # State variables
-        # --------------------------------------------------
         W = np.full(self.N, self.W0, dtype=float)
         w = np.where(np.random.random(self.N) > 0.5, 1, -1)
 
-        # --------------------------------------------------
-        # Histories (market-level)
-        # --------------------------------------------------
         p_hist = np.zeros(self.T)
         p_expect_hist = np.zeros(self.T)
         prob_buy_hist = np.zeros(self.T)
 
-        # --------------------------------------------------
-        # Histories (agent-level)
-        # --------------------------------------------------
         W_history = np.zeros((self.T, self.N))
         profit_history = np.zeros((self.T, self.N))
         w_history = np.zeros((self.T, self.N))
         constraint_history = np.zeros((self.T, self.N))
 
-        # --------------------------------------------------
-        # Aggregates
-        # --------------------------------------------------
         mean_wealth = np.zeros(self.T)
         mean_profit = np.zeros(self.T)
         mean_position = np.zeros(self.T)
         frac_constrained = np.zeros(self.T)
 
-        # --------------------------------------------------
-        # Initial conditions
-        # --------------------------------------------------
         p_prev = np.log(self.fundamental)
         p_expect = np.log(self.fundamental * 1.01)
         w_agg_prev = np.mean(w)
         constrained_active = self.constraints_active
 
-        # --------------------------------------------------
-        # Endogenous replacement tracking (ONLY change)
-        # --------------------------------------------------
         fundamental_log = np.log(0.6 * self.fundamental)
         replacement_done = False
 
-        # ==================================================
-        # Time loop
-        # ==================================================
         for t in range(self.T):
 
-            # ---- decision rule ----
             signal = (p_expect - p_prev) + self.J * w_agg_prev
             prob_buy = 1.0 / (
                 1.0 + np.exp(np.clip(-2 * self.beta * signal, -100, 100))
@@ -121,11 +94,9 @@ class GallegatiModel2:
             if constrained_active:
                 w_new[W <= self.limit_wealth] = -1
 
-            # ---- price dynamics ----
             w_agg = np.mean(w_new)
             p_next = p_prev + self.k * w_agg + self.sigma1 * z1[t]
 
-            # ---- profits / wealth ----
             profits = (
                 w_new * (np.exp(p_next) - np.exp(p_prev) + self.y)
                 - self.c
@@ -133,7 +104,6 @@ class GallegatiModel2:
             W += profits
             W = np.maximum(W, 0.0)
 
-            # ---- bookkeeping ----
             W_history[t] = W
             profit_history[t] = profits
             w_history[t] = w_new
@@ -148,32 +118,25 @@ class GallegatiModel2:
                 else 0.0
             )
 
-            # ---- expectations ----
             p_expect = (
                 p_expect
                 - self.rho * (p_expect - p_next)
                 + self.sigma2 * z2[t]
             )
 
-            # ---- ENDOGENOUS replacement (ONLY change) ----
+            # ---- ENDOGENOUS replacement (MINIMAL FIX) ----
             if (
                 not replacement_done
                 and p_expect < fundamental_log
-                and p_expect < fundamental_log
             ):
-                W[W <= self.limit_wealth] = self.W0
                 constrained_active = False
                 replacement_done = True
 
-            # ---- advance ----
             p_hist[t] = p_next
             p_expect_hist[t] = p_expect
             p_prev = p_next
             w_agg_prev = w_agg
 
-        # ==================================================
-        # Full output dictionary (same pattern)
-        # ==================================================
         full_output = {
             "p_log": p_hist,
             "p_expect": p_expect_hist,
@@ -190,9 +153,6 @@ class GallegatiModel2:
             "exp_shock": z2,
         }
 
-        # ==================================================
-        # Selective return (unchanged contract)
-        # ==================================================
         if return_vars is None:
             return {
                 "p_log": p_hist,
@@ -202,8 +162,6 @@ class GallegatiModel2:
 
         missing = set(return_vars) - full_output.keys()
         if missing:
-            raise KeyError(
-                f"Requested variables not available: {sorted(missing)}"
-            )
+            raise KeyError(f"Requested variables not available: {sorted(missing)}")
 
         return {k: full_output[k] for k in return_vars}
