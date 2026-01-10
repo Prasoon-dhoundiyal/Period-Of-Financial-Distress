@@ -5,7 +5,7 @@ Stores valid runs only.
 
 from tqdm import tqdm
 import numpy as np
-from model2 import GallegatiModel
+from model2 import GallegatiModel2 as GallegatiModel
 from events import detect_events
 
 def monte_carlo_gallegati(
