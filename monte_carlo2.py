@@ -32,6 +32,9 @@ def monte_carlo_gallegati(
 
     for seed in tqdm(range(n_runs), desc="Monte Carlo runs"):
 
+        # ----------------------------
+        # Run Model 2
+        # ----------------------------
         model = GallegatiModel(seed=seed, **model_params)
         out = model.run(
             return_vars=[
@@ -43,11 +46,15 @@ def monte_carlo_gallegati(
 
         frac = out["frac_constrained"]
 
-        # Skip runs with no constraints at all
+        # ----------------------------
+        # Skip runs with no constraints
+        # ----------------------------
         if np.all(frac == 0):
             continue
 
-        # Model 2 event detection
+        # ----------------------------
+        # Event detection (Model 2)
+        # ----------------------------
         constraint_start, crash_time, replacement_time = detect_events(
             out["p_log"],
             out["p_expect"],
@@ -55,21 +62,23 @@ def monte_carlo_gallegati(
             F=F
         )
 
-        # INVALID if expectations already collapsed at constraint start
-        if out["p_expect"][constraint_start] < np.log(0.6 * F):
-            continue
-
-        # Crash is required for validity
+        # ----------------------------
+        # Crash is required
+        # ----------------------------
         if constraint_start is None or crash_time is None:
             continue
 
         steps_constraint_to_crash = crash_time - constraint_start
 
-        # VALIDITY CONDITION
+        # ----------------------------
+        # Validity condition
+        # ----------------------------
         if steps_constraint_to_crash < min_gap:
             continue
 
-        # Replacement is optional in Model 2
+        # ----------------------------
+        # Optional replacement metrics
+        # ----------------------------
         if replacement_time is not None:
             steps_crash_to_replacement = replacement_time - crash_time
             steps_constraint_to_replacement = replacement_time - constraint_start
@@ -77,11 +86,16 @@ def monte_carlo_gallegati(
             steps_crash_to_replacement = None
             steps_constraint_to_replacement = None
 
+        # ----------------------------
+        # Track max gap
+        # ----------------------------
         if steps_constraint_to_crash > max_gap:
             max_gap = steps_constraint_to_crash
             max_gap_seed = seed
 
-        # STORE ONLY VALID RUN
+        # ----------------------------
+        # Store valid run
+        # ----------------------------
         results[seed] = {
             "constraint_start": constraint_start,
             "crash_time": crash_time,
