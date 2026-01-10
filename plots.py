@@ -158,8 +158,8 @@ def plot_logdiff_4_comparison(
     ax.plot(
         g_con,
         color="#111827",
-        lw=1.4,
-        alpha=0.9,
+        lw=0.6,
+        alpha=0.6,
         label="Constrained (Δ₄ log price)"
     )
 
