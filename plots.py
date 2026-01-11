@@ -368,7 +368,12 @@ def plot_monte_carlo_paths(
     Parameters
     ----------
     results : dict
-        Output from monte_carlo_gallegati (valid runs only)
+        Output from monte_carlo_gallegati (valid runs only).
+        Expected keys per entry:
+            - "constraint_start"
+            - "crash_time"
+            - "replacement_start"
+            - "output" -> contains "p_log"
     F : float
         Fundamental price
     alpha_paths : float
@@ -379,8 +384,10 @@ def plot_monte_carlo_paths(
     if len(results) == 0:
         raise ValueError("No valid Monte Carlo runs to plot.")
 
+    created_ax = False
     if ax is None:
         fig, ax = plt.subplots(figsize=(12, 6))
+        created_ax = True
 
     # --- Collect price paths and event times ---
     price_paths = []
@@ -394,9 +401,9 @@ def plot_monte_carlo_paths(
         price_paths.append(np.exp(out["p_log"]))
         constraint_times.append(entry["constraint_start"])
         crash_times.append(entry["crash_time"])
-        replacement_times.append(entry["replacement_time"])
+        replacement_times.append(entry["replacement_start"])
 
-    price_paths = np.array(price_paths)
+    price_paths = np.asarray(price_paths)
 
     # --- Averages ---
     mean_price = price_paths.mean(axis=0)
@@ -446,7 +453,7 @@ def plot_monte_carlo_paths(
         linestyle=":",
         linewidth=1.8,
         alpha=0.9,
-        label=f"Avg replacement (t={avg_replacement})"
+        label=f"Avg replacement start (t={avg_replacement})"
     )
 
     # --- Fundamental price reference ---
@@ -468,8 +475,9 @@ def plot_monte_carlo_paths(
 
     ax.legend(frameon=False, loc="upper right")
 
-    if ax is None:
+    if created_ax:
         plt.tight_layout()
         plt.show()
+
 
 
