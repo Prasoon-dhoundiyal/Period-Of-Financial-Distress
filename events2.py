@@ -1,18 +1,24 @@
 """
-Event detection for Model 2.
+Event detection for Model 2 (agent-level replacement).
 
 Detects:
 - constraint_start
-- replacement_time (first time constraints switch off)
+- replacement_start (first agent replaced)
 - crash_time (first new worst 4-step negative outlier,
-               benchmarked on all past values,
-               but occurring only within the window)
+              benchmarked on all past values,
+              occurring within the PFD window)
 """
 
 import numpy as np
 
 
-def detect_events_model2(p_log, p_expect, frac_constrained, F=10.0):
+def detect_events_model2(
+    p_log,
+    p_expect,
+    frac_constrained,
+    fraction_replaced,
+):
+
     T = len(p_log)
 
     # ----------------------------
@@ -29,26 +35,18 @@ def detect_events_model2(p_log, p_expect, frac_constrained, F=10.0):
     constraint_start = idx[0] if len(idx) > 0 else None
 
     # ----------------------------
-    # Replacement time
-    # (actual regime switch: constraints off)
+    # Replacement start
     # ----------------------------
-    replacement_time = None
-    if constraint_start is not None:
-        for t in range(constraint_start + 1, T):
-            if frac_constrained[t] == 0.0:
-                replacement_time = t
-                break
+    idx = np.where(fraction_replaced > 0)[0]
+    replacement_time = idx[0] if len(idx) > 0 else None
 
     # ----------------------------
-    # Crash time
-    # First new worst 4-step outlier,
-    # benchmarked on ALL past values,
-    # but only within the window
+    # Crash time (within window)
     # ----------------------------
     crash_time = None
     if constraint_start is not None:
-        end = replacement_time if replacement_time is not None else T
 
+        end = replacement_time if replacement_time is not None else T
         past_worst = np.nanmin(g[:constraint_start + 1])
 
         for t in range(constraint_start + 1, end):
