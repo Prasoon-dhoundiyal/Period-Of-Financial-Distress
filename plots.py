@@ -27,131 +27,124 @@ def plot_single_run_prices(
     title=None
 ):
     """
-    Plot single-run price dynamics with constraint, crash,
-    and replacement markers.
-
-    Top panel:
-        - Prices
-        - Fraction constrained (secondary axis)
-
-    Bottom panel:
-        - Fraction replaced
+    Single-run plot with TWO IDENTICAL PANELS.
+    Top panel overlays fraction constrained.
+    Bottom panel overlays fraction replaced.
+    All prices, vertical lines, and fundamentals appear in BOTH panels.
     """
 
-    fig, (ax1, ax3) = plt.subplots(
+    fig, (ax_top, ax_bot) = plt.subplots(
         2, 1,
-        figsize=(11, 8),
-        sharex=True,
-        gridspec_kw={"height_ratios": [3, 1]}
+        figsize=(11, 9),
+        sharex=True
     )
 
-    # ====================================================
-    # TOP PANEL — Prices + Fraction Constrained
-    # ====================================================
+    def draw_panel(ax, fraction, fraction_label, fraction_color):
 
-    # --- Price paths ---
-    ax1.plot(
-        p_constrained,
-        color="#111827",
-        lw=1.8,
-        label="Price (constrained)"
-    )
+        # ----------------------------
+        # Prices
+        # ----------------------------
+        ax.plot(
+            p_constrained,
+            color="#111827",
+            lw=1.8,
+            label="Price (constrained)"
+        )
+        ax.plot(
+            p_unconstrained,
+            color="#6B7280",
+            lw=1.4,
+            linestyle="--",
+            label="Price (unconstrained)"
+        )
 
-    ax1.plot(
-        p_unconstrained,
-        color="#6B7280",
-        lw=1.4,
-        linestyle="--",
-        label="Price (unconstrained)"
-    )
+        # ----------------------------
+        # Vertical event markers
+        # ----------------------------
+        ax.axvline(
+            constraint_start,
+            color=COLOR_CONSTRAINT,
+            linestyle="--",
+            linewidth=1.4,
+            label=f"Constraint start (t={constraint_start})"
+        )
+        ax.axvline(
+            crash_time,
+            color=COLOR_CRASH,
+            linestyle="-.",
+            linewidth=1.6,
+            label=f"Crash (t={crash_time})"
+        )
+        ax.axvline(
+            replacement_time,
+            color=COLOR_REPLACEMENT,
+            linestyle=":",
+            linewidth=1.6,
+            label=f"Replacement start (t={replacement_time})"
+        )
 
-    # --- Event markers ---
-    ax1.axvline(
-        constraint_start,
-        color=COLOR_CONSTRAINT,
-        linestyle="--",
-        linewidth=1.4,
-        alpha=0.95,
-        label=f"Constraint start (t={constraint_start})"
-    )
+        # ----------------------------
+        # Fundamental reference
+        # ----------------------------
+        ax.axhline(
+            0.6 * F,
+            color=COLOR_FUNDAMENTAL,
+            linestyle=":",
+            linewidth=1.2,
+            label="0.6 × Fundamental"
+        )
 
-    ax1.axvline(
-        crash_time,
-        color=COLOR_CRASH,
-        linestyle="-.",
-        linewidth=1.6,
-        alpha=0.95,
-        label=f"Crash (t={crash_time})"
-    )
+        ax.set_ylabel("Price")
 
-    ax1.axvline(
-        replacement_time,
-        color=COLOR_REPLACEMENT,
-        linestyle=":",
-        linewidth=1.6,
-        alpha=0.95,
-        label=f"Replacement start (t={replacement_time})"
-    )
+        # ----------------------------
+        # Fraction (secondary axis)
+        # ----------------------------
+        ax_f = ax.twinx()
+        ax_f.plot(
+            fraction,
+            color=fraction_color,
+            lw=1.3,
+            alpha=0.85,
+            label=fraction_label
+        )
+        ax_f.set_ylabel(fraction_label)
 
-    # --- Fundamental reference ---
-    ax1.axhline(
-        0.6 * F,
-        color=COLOR_FUNDAMENTAL,
-        linestyle=":",
-        linewidth=1.2,
-        alpha=0.9,
-        label="0.6 × Fundamental"
-    )
+        # ----------------------------
+        # Unified legend
+        # ----------------------------
+        l1, lab1 = ax.get_legend_handles_labels()
+        l2, lab2 = ax_f.get_legend_handles_labels()
+        ax.legend(
+            l1 + l2,
+            lab1 + lab2,
+            loc="upper right",
+            frameon=False
+        )
 
-    ax1.set_ylabel("Price")
-
-    # --- Fraction constrained (secondary axis) ---
-    ax2 = ax1.twinx()
-    ax2.plot(
+    # =============================
+    # Top: fraction constrained
+    # =============================
+    draw_panel(
+        ax_top,
         frac_constrained,
-        color="#2563EB",
-        lw=1.2,
-        alpha=0.8,
-        label="Fraction constrained"
-    )
-    ax2.set_ylabel("Fraction constrained")
-
-    # --- Combined legend (top panel) ---
-    lines1, labels1 = ax1.get_legend_handles_labels()
-    lines2, labels2 = ax2.get_legend_handles_labels()
-    ax1.legend(
-        lines1 + lines2,
-        labels1 + labels2,
-        loc="upper right",
-        frameon=False
+        "Fraction constrained",
+        "#2563EB"
     )
 
     if title is not None:
-        ax1.set_title(title)
+        ax_top.set_title(title)
 
-    # ====================================================
-    # BOTTOM PANEL — Fraction Replaced
-    # ====================================================
-
-    ax3.plot(
+    # =============================
+    # Bottom: fraction replaced
+    # =============================
+    draw_panel(
+        ax_bot,
         fraction_replaced,
-        color=COLOR_REPLACEMENT,
-        lw=1.4,
-        linestyle="-",
-        label="Fraction replaced"
+        "Fraction replaced",
+        COLOR_REPLACEMENT
     )
 
-    ax3.axvline(
-        replacement_time,
-        color=COLOR_REPLACEMENT,
-        linestyle=":",
-        linewidth=1.4,
-        alpha=0.9
-    )
-
-    ax3.set_ylabel("Fraction replaced")
-    ax3.set_xlabel("Time")
-    ax3.legend(frameon=False, loc="upper right")
+    ax_bot.set_xlabel("Time")
 
     plt.tight_layout()
     plt.show()
