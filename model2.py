@@ -1,6 +1,6 @@
 """
 Gallegati et al. (2011) Financial Distress Model
-Variant with ENDOGENOUS replacement only.
+Variant with ENDOGENOUS, AGENT-LEVEL replacement.
 All other logic identical to model.py.
 """
 
@@ -73,16 +73,21 @@ class GallegatiModel2:
         mean_position = np.zeros(self.T)
         frac_constrained = np.zeros(self.T)
 
+        # --- replacement instrumentation ---
+        fraction_replaced = np.zeros(self.T)
+        replaced = np.zeros(self.N, dtype=bool)
+
         p_prev = np.log(self.fundamental)
         p_expect = np.log(self.fundamental * 1.01)
         w_agg_prev = np.mean(w)
-        constrained_active = self.constraints_active
 
         fundamental_log = np.log(0.6 * self.fundamental)
-        replacement_done = False
 
         for t in range(self.T):
 
+            # ----------------------------
+            # Decision rule
+            # ----------------------------
             signal = (p_expect - p_prev) + self.J * w_agg_prev
             prob_buy = 1.0 / (
                 1.0 + np.exp(np.clip(-2 * self.beta * signal, -100, 100))
@@ -91,12 +96,19 @@ class GallegatiModel2:
 
             w_new = np.where(rand_choices[t] < prob_buy, 1, -1)
 
-            if constrained_active:
-                w_new[W <= self.limit_wealth] = -1
+            # apply constraints only to non-replaced agents
+            constrained_idx = (W <= self.limit_wealth) & (~replaced)
+            w_new[constrained_idx] = -1
 
+            # ----------------------------
+            # Price dynamics
+            # ----------------------------
             w_agg = np.mean(w_new)
             p_next = p_prev + self.k * w_agg + self.sigma1 * z1[t]
 
+            # ----------------------------
+            # Profits and wealth
+            # ----------------------------
             profits = (
                 w_new * (np.exp(p_next) - np.exp(p_prev) + self.y)
                 - self.c
@@ -104,33 +116,45 @@ class GallegatiModel2:
             W += profits
             W = np.maximum(W, 0.0)
 
-            W_history[t] = W
-            profit_history[t] = profits
-            w_history[t] = w_new
-            constraint_history[t] = (W <= self.limit_wealth).astype(int)
+            # ----------------------------
+            # Constraint tracking
+            # ----------------------------
+            constrained_idx = (W <= self.limit_wealth) & (~replaced)
+            constraint_history[t] = constrained_idx.astype(int)
+            frac_constrained[t] = constraint_history[t].mean()
 
-            mean_wealth[t] = W.mean()
-            mean_profit[t] = profits.mean()
-            mean_position[t] = w_new.mean()
-            frac_constrained[t] = (
-                constraint_history[t].mean()
-                if constrained_active
-                else 0.0
-            )
-
+            # ----------------------------
+            # Expectations update
+            # ----------------------------
             p_expect = (
                 p_expect
                 - self.rho * (p_expect - p_next)
                 + self.sigma2 * z2[t]
             )
 
-            # ---- ENDOGENOUS replacement (MINIMAL FIX) ----
-            if (
-                not replacement_done
-                and p_expect < fundamental_log
-            ):
-                constrained_active = False
-                replacement_done = True
+            # ----------------------------
+            # AGENT-LEVEL replacement
+            # ----------------------------
+            replace_idx = (
+                (p_expect < fundamental_log)
+                & constrained_idx
+            )
+
+            if np.any(replace_idx):
+                W[replace_idx] = self.W0
+                replaced[replace_idx] = True
+                fraction_replaced[t] = replace_idx.mean()
+
+            # ----------------------------
+            # Record histories
+            # ----------------------------
+            W_history[t] = W
+            profit_history[t] = profits
+            w_history[t] = w_new
+
+            mean_wealth[t] = W.mean()
+            mean_profit[t] = profits.mean()
+            mean_position[t] = w_new.mean()
 
             p_hist[t] = p_next
             p_expect_hist[t] = p_expect
@@ -148,6 +172,7 @@ class GallegatiModel2:
             "mean_profit": mean_profit,
             "mean_position": mean_position,
             "frac_constrained": frac_constrained,
+            "fraction_replaced": fraction_replaced,
             "prob_buy": prob_buy_hist,
             "price_shock": z1,
             "exp_shock": z2,
@@ -158,6 +183,7 @@ class GallegatiModel2:
                 "p_log": p_hist,
                 "p_expect": p_expect_hist,
                 "frac_constrained": frac_constrained,
+                "fraction_replaced": fraction_replaced,
             }
 
         missing = set(return_vars) - full_output.keys()
