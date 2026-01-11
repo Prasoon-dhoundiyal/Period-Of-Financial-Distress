@@ -19,6 +19,7 @@ def plot_single_run_prices(
     p_unconstrained,
     p_constrained,
     frac_constrained,
+    fraction_replaced,
     constraint_start,
     crash_time,
     replacement_time,
@@ -28,7 +29,7 @@ def plot_single_run_prices(
 ):
     """
     Plot single-run price dynamics with constraint, crash,
-    and replacement markers.
+    and replacement markers, plus fractions constrained and replaced.
     """
 
     if ax is None:
@@ -67,7 +68,7 @@ def plot_single_run_prices(
         linestyle="-.",
         linewidth=1.6,
         alpha=0.95,
-        label=f"Crash – worst fall (t={crash_time})"
+        label=f"Crash (t={crash_time})"
     )
 
     ax1.axvline(
@@ -76,7 +77,7 @@ def plot_single_run_prices(
         linestyle=":",
         linewidth=1.6,
         alpha=0.95,
-        label=f"Replacement (t={replacement_time})"
+        label=f"Replacement start (t={replacement_time})"
     )
 
     # --- Fundamental reference level ---
@@ -92,7 +93,7 @@ def plot_single_run_prices(
     ax1.set_xlabel("Time")
     ax1.set_ylabel("Price")
 
-    # --- Fraction constrained (secondary axis) ---
+    # --- Fractions (secondary axis) ---
     ax2 = ax1.twinx()
     ax2.plot(
         frac_constrained,
@@ -101,7 +102,17 @@ def plot_single_run_prices(
         alpha=0.75,
         label="Fraction constrained"
     )
-    ax2.set_ylabel("Fraction constrained")
+
+    ax2.plot(
+        fraction_replaced,
+        color="#DC2626",
+        lw=1.2,
+        alpha=0.85,
+        linestyle=":",
+        label="Fraction replaced"
+    )
+
+    ax2.set_ylabel("Fraction")
 
     # --- Legend ---
     lines1, labels1 = ax1.get_legend_handles_labels()
