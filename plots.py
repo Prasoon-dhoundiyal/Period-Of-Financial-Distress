@@ -24,32 +24,45 @@ def plot_single_run_prices(
     crash_time,
     replacement_time,
     F,
-    title=None,
-    ax=None
+    title=None
 ):
     """
     Plot single-run price dynamics with constraint, crash,
-    and replacement markers, plus fractions constrained and replaced.
+    and replacement markers.
+
+    Top panel:
+        - Prices
+        - Fraction constrained (secondary axis)
+
+    Bottom panel:
+        - Fraction replaced
     """
 
-    if ax is None:
-        fig, ax1 = plt.subplots(figsize=(11, 6))
-    else:
-        ax1 = ax
-
-    # --- Price paths ---
-    ax1.plot(
-        p_unconstrained,
-        color="#4B5563",
-        lw=1.1,
-        label="Price (unconstrained)"
+    fig, (ax1, ax3) = plt.subplots(
+        2, 1,
+        figsize=(11, 8),
+        sharex=True,
+        gridspec_kw={"height_ratios": [3, 1]}
     )
 
+    # ====================================================
+    # TOP PANEL — Prices + Fraction Constrained
+    # ====================================================
+
+    # --- Price paths ---
     ax1.plot(
         p_constrained,
         color="#111827",
         lw=1.8,
         label="Price (constrained)"
+    )
+
+    ax1.plot(
+        p_unconstrained,
+        color="#6B7280",
+        lw=1.4,
+        linestyle="--",
+        label="Price (unconstrained)"
     )
 
     # --- Event markers ---
@@ -80,7 +93,7 @@ def plot_single_run_prices(
         label=f"Replacement start (t={replacement_time})"
     )
 
-    # --- Fundamental reference level ---
+    # --- Fundamental reference ---
     ax1.axhline(
         0.6 * F,
         color=COLOR_FUNDAMENTAL,
@@ -90,31 +103,20 @@ def plot_single_run_prices(
         label="0.6 × Fundamental"
     )
 
-    ax1.set_xlabel("Time")
     ax1.set_ylabel("Price")
 
-    # --- Fractions (secondary axis) ---
+    # --- Fraction constrained (secondary axis) ---
     ax2 = ax1.twinx()
     ax2.plot(
         frac_constrained,
         color="#2563EB",
         lw=1.2,
-        alpha=0.75,
+        alpha=0.8,
         label="Fraction constrained"
     )
+    ax2.set_ylabel("Fraction constrained")
 
-    ax2.plot(
-        fraction_replaced,
-        color="#DC2626",
-        lw=1.2,
-        alpha=0.85,
-        linestyle=":",
-        label="Fraction replaced"
-    )
-
-    ax2.set_ylabel("Fraction")
-
-    # --- Legend ---
+    # --- Combined legend (top panel) ---
     lines1, labels1 = ax1.get_legend_handles_labels()
     lines2, labels2 = ax2.get_legend_handles_labels()
     ax1.legend(
@@ -127,9 +129,32 @@ def plot_single_run_prices(
     if title is not None:
         ax1.set_title(title)
 
-    if ax is None:
-        plt.tight_layout()
-        plt.show()
+    # ====================================================
+    # BOTTOM PANEL — Fraction Replaced
+    # ====================================================
+
+    ax3.plot(
+        fraction_replaced,
+        color=COLOR_REPLACEMENT,
+        lw=1.4,
+        linestyle="-",
+        label="Fraction replaced"
+    )
+
+    ax3.axvline(
+        replacement_time,
+        color=COLOR_REPLACEMENT,
+        linestyle=":",
+        linewidth=1.4,
+        alpha=0.9
+    )
+
+    ax3.set_ylabel("Fraction replaced")
+    ax3.set_xlabel("Time")
+    ax3.legend(frameon=False, loc="upper right")
+
+    plt.tight_layout()
+    plt.show()
 
 
 def plot_logdiff_4_comparison(
