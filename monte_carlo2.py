@@ -12,14 +12,13 @@ from events2 import detect_events_model2 as detect_events
 def monte_carlo_gallegati(
     n_runs,
     model_params,
-    F=10.0,
     min_gap=10
 ):
     """
     Monte Carlo driver.
     Stores ONLY valid runs.
 
-    Valid run criteria (as defined by you):
+    Valid run criteria:
     1. At least one agent becomes constrained
     2. A crash is detected
     3. crash_time - constraint_start >= min_gap
@@ -40,7 +39,8 @@ def monte_carlo_gallegati(
             return_vars=[
                 "p_log",
                 "p_expect",
-                "frac_constrained"
+                "frac_constrained",
+                "fraction_replaced"
             ]
         )
 
@@ -59,7 +59,7 @@ def monte_carlo_gallegati(
             out["p_log"],
             out["p_expect"],
             frac,
-            F=F
+            out["fraction_replaced"]
         )
 
         # ----------------------------
@@ -99,7 +99,7 @@ def monte_carlo_gallegati(
         results[seed] = {
             "constraint_start": constraint_start,
             "crash_time": crash_time,
-            "replacement_time": replacement_time,
+            "replacement_start": replacement_time,
 
             "steps_constraint_to_crash": steps_constraint_to_crash,
             "steps_crash_to_replacement": steps_crash_to_replacement,
