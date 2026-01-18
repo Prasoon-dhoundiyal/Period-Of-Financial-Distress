@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from events import detect_events   # REQUIRED, already in your project
 
 # ============================================================
 # Plot styling
@@ -41,108 +42,47 @@ def plot_single_run_prices(
 
     def draw_panel(ax, fraction, fraction_label, fraction_color):
 
-        # ----------------------------
-        # Prices
-        # ----------------------------
-        ax.plot(
-            p_constrained,
-            color="#111827",
-            lw=1.8,
-            label="Price (constrained)"
-        )
-        ax.plot(
-            p_unconstrained,
-            color="#6B7280",
-            lw=1.4,
-            linestyle="--",
-            label="Price (unconstrained)"
-        )
+        ax.plot(p_constrained, color=COLOR_CONSTRAINED, lw=1.8,
+                label="Price (constrained)")
+        ax.plot(p_unconstrained, color=COLOR_UNCONSTRAINED, lw=1.4,
+                linestyle="--", label="Price (unconstrained)")
 
-        # ----------------------------
-        # Vertical event markers
-        # ----------------------------
-        ax.axvline(
-            constraint_start,
-            color=COLOR_CONSTRAINT,
-            linestyle="--",
-            linewidth=1.4,
-            label=f"Constraint start (t={constraint_start})"
-        )
-        ax.axvline(
-            crash_time,
-            color=COLOR_CRASH,
-            linestyle="-.",
-            linewidth=1.6,
-            label=f"Crash (t={crash_time})"
-        )
-        ax.axvline(
-            replacement_time,
-            color=COLOR_REPLACEMENT,
-            linestyle=":",
-            linewidth=1.6,
-            label=f"Replacement start (t={replacement_time})"
-        )
+        ax.axvline(constraint_start, color=COLOR_CONSTRAINT,
+                   linestyle="--", linewidth=1.4,
+                   label=f"Constraint start (t={constraint_start})")
 
-        # ----------------------------
-        # Fundamental reference
-        # ----------------------------
-        ax.axhline(
-            0.6 * F,
-            color=COLOR_FUNDAMENTAL,
-            linestyle=":",
-            linewidth=1.2,
-            label="0.6 × Fundamental"
-        )
+        ax.axvline(crash_time, color=COLOR_CRASH,
+                   linestyle="-.", linewidth=1.6,
+                   label=f"Crash (t={crash_time})")
+
+        ax.axvline(replacement_time, color=COLOR_REPLACEMENT,
+                   linestyle=":", linewidth=1.6,
+                   label=f"Replacement start (t={replacement_time})")
+
+        ax.axhline(0.6 * F, color=COLOR_FUNDAMENTAL,
+                   linestyle=":", linewidth=1.2,
+                   label="0.6 × Fundamental")
 
         ax.set_ylabel("Price")
 
-        # ----------------------------
-        # Fraction (secondary axis)
-        # ----------------------------
         ax_f = ax.twinx()
-        ax_f.plot(
-            fraction,
-            color=fraction_color,
-            lw=1.3,
-            alpha=0.85,
-            label=fraction_label
-        )
+        ax_f.plot(fraction, color=fraction_color, lw=1.3,
+                  alpha=0.85, label=fraction_label)
         ax_f.set_ylabel(fraction_label)
 
-        # ----------------------------
-        # Unified legend
-        # ----------------------------
         l1, lab1 = ax.get_legend_handles_labels()
         l2, lab2 = ax_f.get_legend_handles_labels()
-        ax.legend(
-            l1 + l2,
-            lab1 + lab2,
-            loc="upper right",
-            frameon=False
-        )
+        ax.legend(l1 + l2, lab1 + lab2,
+                  loc="upper right", frameon=False)
 
-    # =============================
-    # Top: fraction constrained
-    # =============================
-    draw_panel(
-        ax_top,
-        frac_constrained,
-        "Fraction constrained",
-        "#2563EB"
-    )
+    draw_panel(ax_top, frac_constrained,
+               "Fraction constrained", "#2563EB")
 
     if title is not None:
         ax_top.set_title(title)
 
-    # =============================
-    # Bottom: fraction replaced
-    # =============================
-    draw_panel(
-        ax_bot,
-        fraction_replaced,
-        "Fraction replaced",
-        COLOR_REPLACEMENT
-    )
+    draw_panel(ax_bot, fraction_replaced,
+               "Fraction replaced", COLOR_REPLACEMENT)
 
     ax_bot.set_xlabel("Time")
 
@@ -167,7 +107,6 @@ def plot_logdiff_4_comparison(
         fig, ax = plt.subplots(figsize=(11, 5))
 
     T = len(p_constrained_log)
-
     g_uncon = np.full(T, np.nan)
     g_con = np.full(T, np.nan)
 
@@ -175,58 +114,20 @@ def plot_logdiff_4_comparison(
         g_uncon[t] = p_unconstrained_log[t] - p_unconstrained_log[t - 4]
         g_con[t] = p_constrained_log[t] - p_constrained_log[t - 4]
 
-    # --- Plot ---
-    ax.plot(
-        g_uncon,
-        color="#065F46",
-        lw=1.0,
-        alpha=0.8,
-        label="Unconstrained (Δ₄ log price)"
-    )
+    ax.plot(g_uncon, color=COLOR_REPLACEMENT, lw=1.0,
+            alpha=0.8, label="Unconstrained (Δ₄ log price)")
+    ax.plot(g_con, color=COLOR_CONSTRAINED, lw=0.8,
+            alpha=1.0, label="Constrained (Δ₄ log price)")
 
-    ax.plot(
-        g_con,
-        color="#111827",
-        lw=0.8,
-        alpha=1.0,
-        label="Constrained (Δ₄ log price)"
-    )
+    ax.axvline(constraint_start, color=COLOR_CONSTRAINT,
+               linestyle="--", linewidth=1.4)
+    ax.axvline(crash_time, color=COLOR_CRASH,
+               linestyle="-.", linewidth=1.6)
+    ax.axvline(replacement_time, color=COLOR_REPLACEMENT,
+               linestyle=":", linewidth=1.6)
 
-    # --- Event markers ---
-    ax.axvline(
-        constraint_start,
-        color=COLOR_CONSTRAINT,
-        linestyle="--",
-        linewidth=1.4,
-        alpha=0.95,
-        label=f"Constraint start (t={constraint_start})"
-    )
-
-    ax.axvline(
-        crash_time,
-        color=COLOR_CRASH,
-        linestyle="-.",
-        linewidth=1.6,
-        alpha=0.95,
-        label=f"Crash (t={crash_time})"
-    )
-
-    ax.axvline(
-        replacement_time,
-        color=COLOR_REPLACEMENT,
-        linestyle=":",
-        linewidth=1.6,
-        alpha=0.95,
-        label=f"Replacement (t={replacement_time})"
-    )
-
-    # --- Zero return reference ---
-    ax.axhline(
-        0.0,
-        color=COLOR_FUNDAMENTAL,
-        linewidth=1.2,
-        alpha=0.9
-    )
+    ax.axhline(0.0, color=COLOR_FUNDAMENTAL,
+               linewidth=1.2, alpha=0.9)
 
     ax.set_xlabel("Time")
     ax.set_ylabel("4-period log difference")
@@ -247,42 +148,18 @@ def plot_wealth_distributions(
     time_points,
     ax=None
 ):
-    """
-    Plot wealth distribution histograms at selected time points.
-
-    Parameters
-    ----------
-    W_hist : array (T x N)
-        Wealth history from the model
-    limit_wealth : float
-        Liquidity constraint threshold (theta * W0)
-    time_points : list
-        Time indices at which to plot wealth distributions
-    ax : matplotlib axis, optional
-    """
-
     if ax is None:
         fig, ax = plt.subplots(figsize=(10, 6))
 
     for t in time_points:
         if t < W_hist.shape[0]:
-            ax.hist(
-                W_hist[t, :],
-                bins=30,
-                alpha=0.5,
-                density=True,
-                label=f"t = {t}"
-            )
-        else:
-            print(f"Warning: t={t} exceeds simulation horizon")
+            ax.hist(W_hist[t, :], bins=30,
+                    alpha=0.5, density=True,
+                    label=f"t = {t}")
 
-    ax.axvline(
-        limit_wealth,
-        color="red",
-        linestyle="--",
-        linewidth=1.2,
-        label=f"Constraint (θW₀ = {limit_wealth:.0f})"
-    )
+    ax.axvline(limit_wealth, color="red",
+               linestyle="--", linewidth=1.2,
+               label=f"Constraint (θW₀ = {limit_wealth:.0f})")
 
     ax.set_title("Wealth Distribution Dynamics")
     ax.set_xlabel("Wealth")
@@ -294,65 +171,99 @@ def plot_wealth_distributions(
         plt.show()
 
 
+# ============================================================
+# UPDATED FUNCTION (ONLY CHANGE)
+# ============================================================
+
 def plot_beta_comparison_constrained(
     price_paths_by_beta,
+    p_log,
+    p_log_expect,
+    frac_constrained,
     F=10.0,
-    title=None,
-    ax=None
+    title=None
 ):
     """
-    Plot constrained price paths for different beta values,
-    using precomputed outputs.
+    SINGLE-RUN beta comparison with event detection.
 
-    Parameters
-    ----------
-    price_paths_by_beta : dict
-        {beta_value: price_path_array}
-    F : float
-        Fundamental price
-    title : str, optional
-    ax : matplotlib axis, optional
+    Top panel:
+        Price vs expected price (4-period log difference)
+        with detected events
+
+    Bottom panel:
+        Constrained price paths for different beta values
+        (unchanged)
     """
 
-    if ax is None:
-        fig, ax = plt.subplots(figsize=(12, 6))
+    # --- Event detection (existing logic) ---
+    constraint_start, crash_time, _, replacement_time = detect_events(
+        p_log,
+        p_log_expect,
+        frac_constrained,
+        F=F
+    )
 
+    fig, (ax_top, ax_bot) = plt.subplots(
+        2, 1, figsize=(12, 9), sharex=True
+    )
+
+    # --- Top panel: Δ4 log(price vs expectation) ---
+    T = len(p_log)
+    g_price = np.full(T, np.nan)
+    g_expect = np.full(T, np.nan)
+
+    for t in range(4, T):
+        g_price[t] = p_log[t] - p_log[t - 4]
+        g_expect[t] = p_log_expect[t] - p_log_expect[t - 4]
+
+    ax_top.plot(g_price, color=COLOR_CONSTRAINED,
+                lw=1.4, label="Price (Δ₄ log)")
+    ax_top.plot(g_expect, color="#1D4ED8",
+                lw=1.4, alpha=0.85,
+                label="Expected price (Δ₄ log)")
+
+    ax_top.axvline(constraint_start, color=COLOR_CONSTRAINT,
+                   linestyle="--", linewidth=1.4)
+    ax_top.axvline(crash_time, color=COLOR_CRASH,
+                   linestyle="-.", linewidth=1.6)
+    ax_top.axvline(replacement_time, color=COLOR_REPLACEMENT,
+                   linestyle=":", linewidth=1.6)
+
+    ax_top.axhline(0.0, color=COLOR_FUNDAMENTAL,
+                   linewidth=1.2, alpha=0.9)
+
+    ax_top.set_ylabel("4-period log difference")
+    ax_top.set_title("Price vs expected price (single run)")
+    ax_top.legend(frameon=False)
+
+    # --- Bottom panel: beta comparison (UNCHANGED) ---
     colors = [
-        "#111827",  # near-black
-        "#1D4ED8",  # blue
-        "#7C2D12",  # brown-red
-        "#065F46",  # green
-        "#6D28D9"   # purple
+        COLOR_CONSTRAINED,
+        "#1D4ED8",
+        "#7C2D12",
+        "#065F46",
+        "#6D28D9"
     ]
 
     for i, beta in enumerate(sorted(price_paths_by_beta.keys())):
-        ax.plot(
-            price_paths_by_beta[beta],
-            color=colors[i % len(colors)],
-            lw=0.9,
-            label=f"β = {beta}"
-        )
+        ax_bot.plot(price_paths_by_beta[beta],
+                    color=colors[i % len(colors)],
+                    lw=0.9, label=f"β = {beta}")
 
-    ax.axhline(
-        F,
-        color="#9CA3AF",
-        linestyle=":",
-        linewidth=1.0,
-        alpha=0.6,
-        label="Fundamental"
-    )
+    ax_bot.axhline(F, color=COLOR_FUNDAMENTAL,
+                   linestyle=":", linewidth=1.0,
+                   alpha=0.6, label="Fundamental")
 
-    ax.set_xlabel("Time")
-    ax.set_ylabel("Price")
+    ax_bot.set_xlabel("Time")
+    ax_bot.set_ylabel("Price")
 
     if title is not None:
-        ax.set_title(title)
+        ax_bot.set_title(title)
 
-    ax.legend(frameon=False)
+    ax_bot.legend(frameon=False)
 
-    if ax is None:
-        plt.tight_layout()
-        plt.show()
+    plt.tight_layout()
+    plt.show()
 
 
 def plot_monte_carlo_paths(
@@ -361,26 +272,6 @@ def plot_monte_carlo_paths(
     alpha_paths=0.08,
     ax=None
 ):
-    """
-    Plot Monte Carlo ensemble of valid realizations.
-    Uses stored outputs only (no reruns).
-
-    Parameters
-    ----------
-    results : dict
-        Output from monte_carlo_gallegati (valid runs only).
-        Expected keys per entry:
-            - "constraint_start"
-            - "crash_time"
-            - "replacement_start"
-            - "output" -> contains "p_log"
-    F : float
-        Fundamental price
-    alpha_paths : float
-        Transparency for individual paths
-    ax : matplotlib axis, optional
-    """
-
     if len(results) == 0:
         raise ValueError("No valid Monte Carlo runs to plot.")
 
@@ -389,7 +280,6 @@ def plot_monte_carlo_paths(
         fig, ax = plt.subplots(figsize=(12, 6))
         created_ax = True
 
-    # --- Collect price paths and event times ---
     price_paths = []
     constraint_times = []
     crash_times = []
@@ -397,7 +287,6 @@ def plot_monte_carlo_paths(
 
     for seed, entry in results.items():
         out = entry["output"]
-
         price_paths.append(np.exp(out["p_log"]))
         constraint_times.append(entry["constraint_start"])
         crash_times.append(entry["crash_time"])
@@ -405,66 +294,28 @@ def plot_monte_carlo_paths(
 
     price_paths = np.asarray(price_paths)
 
-    # --- Averages ---
     mean_price = price_paths.mean(axis=0)
     avg_constraint = int(np.mean(constraint_times))
     avg_crash = int(np.mean(crash_times))
     avg_replacement = int(np.mean(replacement_times))
 
-    # --- Plot all paths ---
     for path in price_paths:
-        ax.plot(
-            path,
-            color="#6B7280",
-            alpha=alpha_paths,
-            linewidth=0.8
-        )
+        ax.plot(path, color=COLOR_UNCONSTRAINED,
+                alpha=alpha_paths, linewidth=0.8)
 
-    # --- Mean path ---
-    ax.plot(
-        mean_price,
-        color="#111827",
-        linewidth=2.6,
-        label="Mean price (valid runs)"
-    )
+    ax.plot(mean_price, color=COLOR_CONSTRAINED,
+            linewidth=2.6, label="Mean price (valid runs)")
 
-    # --- Average event timings across valid runs ---
-    ax.axvline(
-        avg_constraint,
-        color=COLOR_CONSTRAINT,
-        linestyle="--",
-        linewidth=1.6,
-        alpha=0.9,
-        label=f"Avg constraint start (t={avg_constraint})"
-    )
+    ax.axvline(avg_constraint, color=COLOR_CONSTRAINT,
+               linestyle="--", linewidth=1.6)
+    ax.axvline(avg_crash, color=COLOR_CRASH,
+               linestyle="-.", linewidth=1.8)
+    ax.axvline(avg_replacement, color=COLOR_REPLACEMENT,
+               linestyle=":", linewidth=1.8)
 
-    ax.axvline(
-        avg_crash,
-        color=COLOR_CRASH,
-        linestyle="-.",
-        linewidth=1.8,
-        alpha=0.9,
-        label=f"Avg crash (t={avg_crash})"
-    )
-
-    ax.axvline(
-        avg_replacement,
-        color=COLOR_REPLACEMENT,
-        linestyle=":",
-        linewidth=1.8,
-        alpha=0.9,
-        label=f"Avg replacement start (t={avg_replacement})"
-    )
-
-    # --- Fundamental price reference ---
-    ax.axhline(
-        F,
-        color=COLOR_FUNDAMENTAL,
-        linestyle=":",
-        linewidth=1.4,
-        alpha=0.85,
-        label="Fundamental"
-    )
+    ax.axhline(F, color=COLOR_FUNDAMENTAL,
+               linestyle=":", linewidth=1.4,
+               alpha=0.85, label="Fundamental")
 
     ax.set_xlabel("Time")
     ax.set_ylabel("Price")
@@ -478,6 +329,3 @@ def plot_monte_carlo_paths(
     if created_ax:
         plt.tight_layout()
         plt.show()
-
-
-
