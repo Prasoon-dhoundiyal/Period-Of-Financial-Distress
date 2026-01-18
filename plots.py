@@ -175,35 +175,32 @@ def plot_beta_comparison_constrained(
     price_paths_by_beta,
     p_log,
     p_log_expect,
-    frac_constrained,
+    constraint_start,
+    crash_time,
+    replacement_time,
     F=10.0,
     title=None
 ):
     """
-    SINGLE-RUN beta comparison with event detection.
+    SINGLE-RUN beta comparison plot.
 
     Top panel:
-        Price vs expected price (4-period log difference)
-        with detected events
+        4-period log difference: price vs expected price
+        with externally provided event markers.
 
     Bottom panel:
         Constrained price paths for different beta values
-        (unchanged)
+        (unchanged behaviour).
     """
 
-    # --- Event detection (Model2 signature: NO F ARGUMENT) ---
-    constraint_start, crash_time, _, replacement_time = detect_events(
-        p_log,
-        p_log_expect,
-        frac_constrained
-    )
-
     fig, (ax_top, ax_bot) = plt.subplots(
-        2, 1, figsize=(12, 9), sharex=True
+        2, 1,
+        figsize=(12, 9),
+        sharex=True
     )
 
     # =====================================================
-    # TOP PANEL — Δ4 log(price vs expectation)
+    # TOP PANEL — price vs expected price (Δ4 log)
     # =====================================================
     T = len(p_log)
     g_price = np.full(T, np.nan)
@@ -227,15 +224,35 @@ def plot_beta_comparison_constrained(
         label="Expected price (Δ₄ log)"
     )
 
-    ax_top.axvline(constraint_start, color=COLOR_CONSTRAINT,
-                   linestyle="--", linewidth=1.4)
-    ax_top.axvline(crash_time, color=COLOR_CRASH,
-                   linestyle="-.", linewidth=1.6)
-    ax_top.axvline(replacement_time, color=COLOR_REPLACEMENT,
-                   linestyle=":", linewidth=1.6)
+    # Event markers (already detected elsewhere)
+    ax_top.axvline(
+        constraint_start,
+        color=COLOR_CONSTRAINT,
+        linestyle="--",
+        linewidth=1.4,
+        label=f"Constraint start (t={constraint_start})"
+    )
+    ax_top.axvline(
+        crash_time,
+        color=COLOR_CRASH,
+        linestyle="-.",
+        linewidth=1.6,
+        label=f"Crash (t={crash_time})"
+    )
+    ax_top.axvline(
+        replacement_time,
+        color=COLOR_REPLACEMENT,
+        linestyle=":",
+        linewidth=1.6,
+        label=f"Replacement start (t={replacement_time})"
+    )
 
-    ax_top.axhline(0.0, color=COLOR_FUNDAMENTAL,
-                   linewidth=1.2, alpha=0.9)
+    ax_top.axhline(
+        0.0,
+        color=COLOR_FUNDAMENTAL,
+        linewidth=1.2,
+        alpha=0.9
+    )
 
     ax_top.set_ylabel("4-period log difference")
     ax_top.set_title("Price vs expected price (single run)")
