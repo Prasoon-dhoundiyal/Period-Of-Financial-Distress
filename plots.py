@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from events import detect_events   # REQUIRED, already in your project
+from events2 import detect_events   # REQUIRED, already in your project
 
 # ============================================================
 # Plot styling
