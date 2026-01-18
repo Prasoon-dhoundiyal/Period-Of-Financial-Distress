@@ -171,10 +171,6 @@ def plot_wealth_distributions(
         plt.show()
 
 
-# ============================================================
-# UPDATED FUNCTION (ONLY CHANGE)
-# ============================================================
-
 def plot_beta_comparison_constrained(
     price_paths_by_beta,
     p_log,
@@ -195,19 +191,20 @@ def plot_beta_comparison_constrained(
         (unchanged)
     """
 
-    # --- Event detection (existing logic) ---
+    # --- Event detection (Model2 signature: NO F ARGUMENT) ---
     constraint_start, crash_time, _, replacement_time = detect_events(
         p_log,
         p_log_expect,
-        frac_constrained,
-        F=F
+        frac_constrained
     )
 
     fig, (ax_top, ax_bot) = plt.subplots(
         2, 1, figsize=(12, 9), sharex=True
     )
 
-    # --- Top panel: Δ4 log(price vs expectation) ---
+    # =====================================================
+    # TOP PANEL — Δ4 log(price vs expectation)
+    # =====================================================
     T = len(p_log)
     g_price = np.full(T, np.nan)
     g_expect = np.full(T, np.nan)
@@ -216,11 +213,19 @@ def plot_beta_comparison_constrained(
         g_price[t] = p_log[t] - p_log[t - 4]
         g_expect[t] = p_log_expect[t] - p_log_expect[t - 4]
 
-    ax_top.plot(g_price, color=COLOR_CONSTRAINED,
-                lw=1.4, label="Price (Δ₄ log)")
-    ax_top.plot(g_expect, color="#1D4ED8",
-                lw=1.4, alpha=0.85,
-                label="Expected price (Δ₄ log)")
+    ax_top.plot(
+        g_price,
+        color=COLOR_CONSTRAINED,
+        lw=1.4,
+        label="Price (Δ₄ log)"
+    )
+    ax_top.plot(
+        g_expect,
+        color="#1D4ED8",
+        lw=1.4,
+        alpha=0.85,
+        label="Expected price (Δ₄ log)"
+    )
 
     ax_top.axvline(constraint_start, color=COLOR_CONSTRAINT,
                    linestyle="--", linewidth=1.4)
@@ -236,7 +241,9 @@ def plot_beta_comparison_constrained(
     ax_top.set_title("Price vs expected price (single run)")
     ax_top.legend(frameon=False)
 
-    # --- Bottom panel: beta comparison (UNCHANGED) ---
+    # =====================================================
+    # BOTTOM PANEL — beta comparison (UNCHANGED)
+    # =====================================================
     colors = [
         COLOR_CONSTRAINED,
         "#1D4ED8",
@@ -246,13 +253,21 @@ def plot_beta_comparison_constrained(
     ]
 
     for i, beta in enumerate(sorted(price_paths_by_beta.keys())):
-        ax_bot.plot(price_paths_by_beta[beta],
-                    color=colors[i % len(colors)],
-                    lw=0.9, label=f"β = {beta}")
+        ax_bot.plot(
+            price_paths_by_beta[beta],
+            color=colors[i % len(colors)],
+            lw=0.9,
+            label=f"β = {beta}"
+        )
 
-    ax_bot.axhline(F, color=COLOR_FUNDAMENTAL,
-                   linestyle=":", linewidth=1.0,
-                   alpha=0.6, label="Fundamental")
+    ax_bot.axhline(
+        F,
+        color=COLOR_FUNDAMENTAL,
+        linestyle=":",
+        linewidth=1.0,
+        alpha=0.6,
+        label="Fundamental"
+    )
 
     ax_bot.set_xlabel("Time")
     ax_bot.set_ylabel("Price")
